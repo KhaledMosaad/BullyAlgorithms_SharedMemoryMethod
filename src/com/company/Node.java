@@ -8,41 +8,38 @@ import java.nio.LongBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
-
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.concurrent.TimeUnit;
 
 public class Node {
     private static String filePath;
     private static Long myId;
     private static ArrayList<Long> processesIds;
-    private static boolean stopElection=false;
-    private static boolean isCoordinator=false;
     private static LongBuffer longBuffer;
     private static CharBuffer charBuffer;
 
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException, InterruptedException {
         filePath =args[0];
         myId=ProcessHandle.current().pid();
+        TimeUnit.SECONDS.sleep(1);
         readProcessesId();
         System.out.println(processesIds);
         beginElection();
         readMessage();
     }
 
-    private static void beginElection() {
+    private static void beginElection(){
         int flag=0;
         for(int i=0;i<processesIds.size();i++)
         {
             if(processesIds.get(i)>myId) {
-                //writeMessage("Election", processesIds.get(i).toString());
                 flag++;
             }
         }
         if(flag==0)
         {
-            isCoordinator=true;
             for(int i=0;i<processesIds.size();i++)
             {
                 if(!processesIds.get(i).equals(myId))
@@ -52,7 +49,6 @@ public class Node {
             }
         }
     }
-
     private static void writeMessage(String message,String toProcess) {
         try (RandomAccessFile randomAccessFile = new RandomAccessFile(filePath, "rw");
              FileChannel fileChannel = randomAccessFile.getChannel()
@@ -118,7 +114,6 @@ public class Node {
                                 writeMessage("OK", processId.toString());
                                 break;
                             case "OK":
-                                stopElection = true;
                                 break;
                             case "I'm Coordinator":
                             case "Yes":
