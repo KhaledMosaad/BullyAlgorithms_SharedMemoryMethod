@@ -17,8 +17,8 @@ public class Main {
     public static void main(String[] args) throws IOException {
 
         processesIds=new ArrayList<>();
-        for(int i=0;i<2;i++) {
-            file=new File(String.valueOf(ProcessHandle.current().pid()));
+        file=new File(String.valueOf(ProcessHandle.current().pid()));
+        for(int i=0;i<4;i++) {
             processesIds.add(newNode(file.getPath()));
         }
         shareProcessesIds();
