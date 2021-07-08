@@ -6,29 +6,30 @@ import java.io.RandomAccessFile;
 import java.nio.LongBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
+import java.nio.channels.FileLock;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
+
 
 public class Main {
-    public static ArrayList<Long> processesIds;
+    private static ArrayList<Long> processesIds;
+    private static File file;
+    public static void main(String[] args) throws IOException {
 
-    public static void main(String[] args) throws IOException, InterruptedException {
         processesIds=new ArrayList<>();
         for(int i=0;i<2;i++) {
-            processesIds.add(newNode(String.valueOf(ProcessHandle.current().pid())));
+            file=new File(String.valueOf(ProcessHandle.current().pid()));
+            processesIds.add(newNode(file.getPath()));
         }
         shareProcessesIds();
     }
     public static void shareProcessesIds() throws IOException {
-        File file=new File(String.valueOf(ProcessHandle.current().pid()));
         RandomAccessFile randomAccessFile=new RandomAccessFile(file.getPath(),"rw");
         FileChannel fileChannel= randomAccessFile.getChannel();
         MappedByteBuffer buffer = fileChannel.map(FileChannel.MapMode.READ_WRITE, 0, 4096);
         LongBuffer longBuffer = buffer.asLongBuffer();
-        for(int i=0;i<processesIds.size();i++)
-        {
-            longBuffer.put(processesIds.get(i));
+        for (Long processesId : processesIds) {
+            longBuffer.put(processesId);
         }
     }
     public static Long newNode(String args) throws IOException {
